@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<meta name="robots" content="noindex, nofollow">
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
 		<title>Trekfall</title>
@@ -93,7 +92,27 @@ body {
 		</style>
 		<link id="-gd-engine-icon" rel="icon" type="image/png" href="index.icon.png" />
 <link rel="apple-touch-icon" href="index.apple-touch-icon.png"/>
-
+<meta name='robots' content='noindex, nofollow'>
+<script>
+// Trekfall test page: make sound work in iPhone Safari.
+// 1) Web Audio follows the ring/silent switch unless the audio session is 'playback' (iOS 17+).
+try { if (navigator.audioSession) { navigator.audioSession.type = 'playback'; } } catch (e) {}
+// 2) iOS only unlocks audio on a real gesture end (touchend/pointerup), not on touchstart, and may
+//    suspend it again after an interruption, so resume every audio context on each gesture end.
+(function () {
+	const Orig = window.AudioContext || window.webkitAudioContext;
+	if (!Orig) { return; }
+	const contexts = [];
+	function Tracked(opts) { const ctx = new Orig(opts); contexts.push(ctx); return ctx; }
+	Tracked.prototype = Orig.prototype;
+	window.AudioContext = Tracked;
+	window.webkitAudioContext = Tracked;
+	function unlock() { contexts.forEach(function (ctx) { if (ctx.state !== 'running') { ctx.resume(); } }); }
+	['touchend', 'pointerup', 'click', 'keydown'].forEach(function (ev) {
+		window.addEventListener(ev, unlock, { capture: true, passive: true });
+	});
+})();
+</script>
 	</head>
 	<body>
 		<canvas id="canvas">
@@ -112,7 +131,7 @@ body {
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":55888,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":69916,"index.wasm":39514754},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
